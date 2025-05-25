@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ECNET Login</title>
+  <style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-container {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 40px;
+        max-width: 400px;
+        width: 90%;
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .logo {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .logo h1 {
+        color: #333;
+        margin: 0;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .logo p {
+        color: #666;
+        margin: 5px 0 0 0;
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 500;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e1e1e1;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .login-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .login-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .error-message {
+        background: #fee;
+        color: #c33;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        color: #666;
+        margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">
+      <h1>ECNET</h1>
+      <p>Electronics Corporation of India Limited</p>
+    </div>
+
+    <div id="errorMessage" class="error-message"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+
+      <div class="form-group">
+        <label for="role">Select Role</label>
+        <select id="role" name="role" required>
+          <option value="" disabled selected>-- Choose Role --</option>
+          <option value="NormalUser">Normal User</option>
+          <option value="ITChampion">IT Champion</option>
+          <option value="HOD">HOD</option>
+        </select>
+      </div>
+
+      <button type="submit" class="login-btn" id="loginBtn">Login</button>
+      <div class="loading" id="loadingMsg">Logging in...</div>
+    </form>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:5024/api';
+    
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+      const errorDiv = document.getElementById('errorMessage');
+      const loadingDiv = document.getElementById('loadingMsg');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      // Reset error message
+      errorDiv.style.display = 'none';
+      
+      // Show loading state
+      loadingDiv.style.display = 'block';
+      loginBtn.disabled = true;
+      
+      try {
+        const response = await fetch(`${API_BASE}/Users/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Check if the selected role matches the user's role
+          if (data.Role !== role) {
+            throw new Error('Selected role does not match your account role');
+          }
+          
+          // Store user info
+          sessionStorage.setItem('userInfo', JSON.stringify({
+            username: data.Username,
+            role: data.Role,
+            userId: data.UserId
+          }));
+          
+          // Redirect based on role
+          switch (data.Role) {
+            case 'NormalUser':
+              window.location.href = 'normalUser.html';
+              break;
+            case 'ITChampion':
+              window.location.href = 'it-champion.html';
+              break;
+            case 'HOD':
+              window.location.href = 'hod.html';
+              break;
+            default:
+              throw new Error('Unknown role');
+          }
+        } else {
+          throw new Error(data.Message || 'Login failed');
+        }
+      } catch (error) {
+        errorDiv.textContent = error.message;
+        errorDiv.style.display = 'block';
+      } finally {
+        loadingDiv.style.display = 'none';
+        loginBtn.disabled = false;
+      }
+    });
+
+    // Test credentials info
+    console.log('Test Credentials:');
+    console.log('Normal User: user1 / pass123');
+    console.log('IT Champion: champion1 / pass456');
+    console.log('HOD: hod1 / pass789');
+  </script>
+</body>
+</html>
