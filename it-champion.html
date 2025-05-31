@@ -206,13 +206,18 @@
             color: #333;
         }
 
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
             box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
         }
 
         .action-buttons {
@@ -313,6 +318,7 @@
                     <th>System Make</th>
                     <th>Request Date</th>
                     <th>Status</th>
+                    <th>Workflow Stage</th>
                 </tr>
             </thead>
             <tbody id="requestsTableBody">
@@ -443,6 +449,10 @@
                 <label for="championEmail">Email:</label>
                 <input type="email" id="championEmail" placeholder="Enter Email Address">
             </div>
+            <div class="form-group">
+                <label for="itChampionComments">IT Champion Comments:</label>
+                <textarea id="itChampionComments" placeholder="Enter your review comments here..."></textarea>
+            </div>
         </div>
 
         <div class="action-buttons">
@@ -452,7 +462,12 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:5024/api';
+        // Updated to match your backend handlers
+        const HANDLERS = {
+            VIEW: 'ViewRequestsHandler.ashx',
+            UPDATE: 'UpdateRequestHandler.ashx'
+        };
+        
         let currentRequests = [];
         let selectedRequest = null;
 
@@ -475,18 +490,24 @@
 
         async function loadRequests() {
             try {
-                const response = await fetch(`${API_BASE}/Request`);
+                // Use the ViewRequestsHandler with query parameters to filter for IT Champion pending requests
+                const response = await fetch(`${HANDLERS.VIEW}?role=it-champion&status=Pending`);
                 if (!response.ok) throw new Error('Failed to fetch requests');
                 
                 currentRequests = await response.json();
-                // Filter for pending requests that need IT Champion review
-                const pendingRequests = currentRequests.filter(req => req.status === 'Pending');
+                
+                // Additional filtering on frontend if needed
+                const pendingRequests = currentRequests.filter(req => 
+                    req.Status === 'Pending' || req.WorkflowStage === 'Pending IT Champion Review'
+                );
+                
                 displayRequests(pendingRequests);
                 
                 document.getElementById('loadingMessage').style.display = 'none';
                 document.getElementById('requestsTable').style.display = 'table';
             } catch (error) {
                 showMessage('Error loading requests: ' + error.message, 'error');
+                document.getElementById('loadingMessage').style.display = 'none';
             }
         }
 
@@ -495,20 +516,20 @@
             tbody.innerHTML = '';
 
             if (requests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">No pending requests found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">No pending requests found</td></tr>';
                 return;
             }
 
             requests.forEach(request => {
-                const details = request.details ? JSON.parse(request.details) : {};
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${request.id}</td>
-                    <td>${details.applicantName || 'N/A'}</td>
-                    <td>${request.department || 'N/A'}</td>
-                    <td>${details.systemMake || 'N/A'}</td>
-                    <td>${new Date(request.requestDate).toLocaleDateString()}</td>
-                    <td><span class="status-badge status-${request.status.toLowerCase()}">${request.status}</span></td>
+                    <td>${request.Id}</td>
+                    <td>${request.ApplicantName || 'N/A'}</td>
+                    <td>${request.Department || 'N/A'}</td>
+                    <td>${request.SystemMake || 'N/A'}</td>
+                    <td>${new Date(request.RequestDate).toLocaleDateString()}</td>
+                    <td><span class="status-badge status-${request.Status.toLowerCase()}">${request.Status}</span></td>
+                    <td>${request.WorkflowStage || 'N/A'}</td>
                 `;
                 
                 row.addEventListener('click', () => selectRequest(request, row));
@@ -544,7 +565,7 @@
             ];
 
             for (let field of requiredFields) {
-                if (!document.getElementById(field).value) {
+                if (!document.getElementById(field).value.trim()) {
                     showMessage(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
                     return;
                 }
@@ -560,7 +581,7 @@
             }
 
             try {
-                // Prepare checklist data
+                // Prepare checklist data to store in IT Champion Comments
                 const checklistData = {
                     buildingSwitchIP: document.getElementById('buildingSwitchIP').value,
                     buildingSwitchPort: document.getElementById('buildingSwitchPort').value,
@@ -589,20 +610,20 @@
                         verificationDate: document.getElementById('verificationDate').value,
                         phone: document.getElementById('championPhone').value,
                         email: document.getElementById('championEmail').value
-                    }
+                    },
+                    reviewComments: document.getElementById('itChampionComments').value
                 };
 
-                // Update request with IT Champion review
+                // Prepare update data to match UpdateRequestHandler expectations
                 const updateData = {
-                    ...selectedRequest,
-                    itChampionName: userInfo.username,
-                    itChampionReviewDate: new Date().toISOString(),
-                    workflowStage: 'IT Champion Reviewed',
-                    checklistData: JSON.stringify(checklistData)
+                    Id: selectedRequest.Id,
+                    Status: selectedRequest.Status, // Keep current status
+                    WorkflowStage: 'IT Champion Reviewed - Pending HOD Approval',
+                    ItChampionComments: JSON.stringify(checklistData) // Store all checklist data as JSON in comments
                 };
 
-                const response = await fetch(`${API_BASE}/Request/${selectedRequest.id}`, {
-                    method: 'PUT',
+                const response = await fetch(HANDLERS.UPDATE, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -610,6 +631,7 @@
                 });
 
                 if (response.ok) {
+                    const result = await response.json();
                     showMessage('Request successfully forwarded to HOD!', 'success');
                     // Reset form and reload requests
                     cancelReview();
@@ -617,7 +639,8 @@
                         loadRequests();
                     }, 1000);
                 } else {
-                    throw new Error('Failed to update request');
+                    const errorResult = await response.json();
+                    throw new Error(errorResult.Message || 'Failed to update request');
                 }
             } catch (error) {
                 showMessage('Error forwarding request: ' + error.message, 'error');
@@ -641,7 +664,7 @@
             document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
             
             // Reset text inputs (except readonly ones)
-            document.querySelectorAll('input[type="text"]:not([readonly]), input[type="tel"], input[type="email"]').forEach(input => {
+            document.querySelectorAll('input[type="text"]:not([readonly]), input[type="tel"], input[type="email"], textarea').forEach(input => {
                 input.value = '';
             });
             
