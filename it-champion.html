@@ -3,1441 +3,668 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT Champion Checklist Form</title>
+    <title>IT Champion - ECNET Requests</title>
     <style>
-        :root {
-            --primary-color: #4CAF50;
-            --primary-dark: #45a049;
-            --secondary-color: #2196F3;
-            --error-color: #f44336;
-            --warning-color: #ff9800;
-            --success-color: #4CAF50;
-            --background-color: #f5f7fa;
-            --card-background: #ffffff;
-            --text-primary: #333333;
-            --text-secondary: #666666;
-            --border-color: #e0e0e0;
-            --shadow: 0 2px 10px rgba(0,0,0,0.1);
-            --shadow-hover: 0 4px 20px rgba(0,0,0,0.15);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: var(--card-background);
-            border-radius: 15px;
-            box-shadow: var(--shadow);
-            overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
+            color: #333;
             margin: 0;
-            font-size: 1.8rem;
-            font-weight: 600;
+            font-size: 24px;
         }
 
-        .header h2 {
-            margin: 10px 0 0 0;
-            font-size: 1.2rem;
-            opacity: 0.9;
-            font-weight: 400;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .section {
-            margin-bottom: 30px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            border-left: 4px solid var(--secondary-color);
-        }
-
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0 0 20px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-icon {
-            width: 24px;
-            height: 24px;
-            background: var(--secondary-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
+        .user-info {
+            color: #666;
             font-size: 14px;
         }
 
-        .request-info {
-            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-            border: none;
-            border-left: 4px solid var(--secondary-color);
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-
-        .info-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .info-label {
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-
-        .info-value {
-            font-size: 1rem;
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .progress-container {
-            margin: 20px 0;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 25px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--success-color), var(--primary-dark));
-            width: 0%;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .logout-btn {
+            background: #dc3545;
             color: white;
-            font-weight: 600;
-            font-size: 0.9rem;
-            position: relative;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
         }
 
-        .progress-text {
-            text-align: center;
-            margin-top: 10px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .form-group {
+        .requests-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
             margin-bottom: 20px;
         }
 
-        .form-label {
-            display: block;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        .form-input {
+        table {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        tr.selected {
+            background-color: #e3f2fd !important;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .checklist-panel {
             background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            display: none;
         }
 
-        .form-input:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        .checklist-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
         }
 
-        .form-input.valid {
-            border-color: var(--success-color);
-        }
-
-        .form-input.invalid {
-            border-color: var(--error-color);
-        }
-
-        .form-input[readonly] {
-            background-color: #f5f5f5;
-            color: var(--text-secondary);
-        }
-
-        .checkbox-list {
-            list-style: none;
-            padding: 0;
+        .checklist-header h2 {
             margin: 0;
+            color: #333;
+            font-size: 22px;
+        }
+
+        .ecnet-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .ecnet-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .ecnet-table th, .ecnet-table td {
+            border: 1px solid #333;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .ecnet-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .ecnet-table input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 4px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin: 20px 0 15px 0;
+            color: #333;
+            font-size: 16px;
         }
 
         .checkbox-item {
-            margin: 12px 0;
-            padding: 16px;
-            background: white;
-            border-radius: 10px;
-            border: 2px solid var(--border-color);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
         }
 
         .checkbox-item:hover {
-            box-shadow: var(--shadow-hover);
-            transform: translateY(-2px);
-        }
-
-        .checkbox-item.checked {
-            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
-            border-color: var(--success-color);
+            background-color: #f8f9fa;
         }
 
         .checkbox-item input[type="checkbox"] {
-            margin-right: 15px;
-            transform: scale(1.3);
-            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 3px;
         }
 
-        .checkbox-label {
-            font-weight: 500;
-            color: var(--text-primary);
+        .checkbox-item label {
+            font-size: 14px;
+            line-height: 1.4;
             cursor: pointer;
-            display: flex;
-            align-items: center;
+            flex: 1;
         }
 
-        .antivirus-details {
-            margin-top: 15px;
+        .champion-details {
+            background: #e8f4fd;
             padding: 15px;
-            background: #e3f2fd;
             border-radius: 8px;
-            border: 1px solid #bbdefb;
-            display: none;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                max-height: 0;
-            }
-            to {
-                opacity: 1;
-                max-height: 200px;
-            }
-        }
-
-        .hod-selection {
-            background: #fff3e0;
-            border-left: 4px solid var(--warning-color);
-            padding: 20px;
-            border-radius: 10px;
             margin: 20px 0;
         }
 
-        .champion-info {
-            background: #f3e5f5;
-            border-left: 4px solid #9c27b0;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
+        .champion-details h3 {
+            margin-top: 0;
+            color: #1976D2;
         }
 
-        .champion-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        .form-row {
+            display: flex;
             gap: 15px;
+            margin-bottom: 15px;
         }
 
-        .submit-container {
-            text-align: center;
-            margin: 30px 0;
+        .form-group {
+            flex: 1;
         }
 
-        .submit-btn {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
-            min-width: 200px;
-        }
-
-        .submit-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .submit-btn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .status-message {
-            padding: 15px 20px;
-            margin: 20px 0;
-            border-radius: 10px;
-            display: none;
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
             font-weight: 500;
-            animation: slideIn 0.3s ease;
+            color: #333;
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
         }
 
-        .status-success {
+        .action-buttons {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
 
-        .status-error {
+        .error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
 
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .note {
-            text-align: center;
-            font-style: italic;
-            color: var(--text-secondary);
-            margin: 20px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 20px;
-            background: #f8f9fa;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .validation-message {
-            font-size: 0.9rem;
-            margin-top: 5px;
-            padding: 5px 10px;
-            border-radius: 4px;
-            display: none;
-        }
-
-        .validation-error {
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
-        }
-
-        .validation-success {
-            background: #e8f5e8;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-
         @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 10px;
+            .form-row {
+                flex-direction: column;
             }
-
-            .content {
-                padding: 20px;
+            
+            .ecnet-table {
+                font-size: 12px;
             }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .champion-grid {
-                grid-template-columns: 1fr;
+            
+            .action-buttons .btn {
+                display: block;
+                margin-bottom: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>ELECTRONICS CORPORATION OF INDIA LIMITED</h1>
-            <h2>Desktop Security Compliance Checklist</h2>
+    <div class="header">
+        <div>
+            <h1>IT Champion Dashboard</h1>
+            <div class="user-info">
+                <strong>Logged in as:</strong> <span id="currentUser"></span> (IT Champion)
+            </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div class="requests-container">
+        <div id="loadingMessage" class="loading">Loading requests...</div>
+        <table id="requestsTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Request ID</th>
+                    <th>Applicant Name</th>
+                    <th>Department</th>
+                    <th>System Make</th>
+                    <th>Request Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="requestsTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <div id="checklistPanel" class="checklist-panel">
+        <div class="checklist-header">
+            <h2>Checklist for Desktop Security Compliance</h2>
         </div>
 
-        <div class="content">
-            <div class="section request-info">
-                <div class="section-title">
-                    <div class="section-icon">📋</div>
-                    Request Information
-                </div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Request ID</div>
-                        <div class="info-value" id="requestId">Loading...</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Department</div>
-                        <div class="info-value" id="department">Loading...</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Request Date</div>
-                        <div class="info-value" id="requestDate">Loading...</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Status</div>
-                        <div class="info-value" id="requestStatus">Loading...</div>
-                    </div>
-                </div>
-            </div>
+        <div class="ecnet-details">
+            <h3>Particulars of the ECNET Connectivity Point</h3>
+            <p><strong>To champion entry screen.</strong></p>
+            
+            <table class="ecnet-table">
+                <tr>
+                    <th>Building Switch IP Address</th>
+                    <td><input type="text" id="buildingSwitchIP" placeholder="Enter IP Address"></td>
+                </tr>
+                <tr>
+                    <th>Building Switch Port No.</th>
+                    <td><input type="text" id="buildingSwitchPort" placeholder="Enter Port Number"></td>
+                </tr>
+                <tr>
+                    <th>Access Switch IP Address</th>
+                    <td><input type="text" id="accessSwitchIP" placeholder="Enter IP Address"></td>
+                </tr>
+                <tr>
+                    <th>Access Switch Port No.</th>
+                    <td><input type="text" id="accessSwitchPort" placeholder="Enter Port Number"></td>
+                </tr>
+                <tr>
+                    <th>I/O Port No.</th>
+                    <td><input type="text" id="ioPortNo" placeholder="Enter I/O Port"></td>
+                </tr>
+            </table>
+        </div>
 
-            <div class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill">0%</div>
-                </div>
-                <div class="progress-text" id="progressText">Complete all checklist items</div>
-            </div>
+        <div class="section-title">Configuration Parameters:</div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="legalOS">
+            <label for="legalOS">Legal OS and Application Software</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="antivirus">
+            <label for="antivirus">Loaded Antivirus...................................(Brand & Version)</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="usbControl">
+            <label for="usbControl">Installed USB Pratirodh (Controlled removable media usage)</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="strongPassword">
+            <label for="strongPassword">Strong Login Password (No. of alphabets/numerals/special characters; x/y/z): .................................</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="separateAccounts">
+            <label for="separateAccounts">Separate Administrator & User accounts</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="disableRDP">
+            <label for="disableRDP">Disabled Remote Desktop features</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="disableAutorun">
+            <label for="disableAutorun">Disabled Auto-run/Auto-play features</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="windowsFirewall">
+            <label for="windowsFirewall">Enabled Windows Firewall</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="fileSharing">
+            <label for="fileSharing">Turned off File & Printer sharing</label>
+        </div>
 
-            <div class="status-message" id="statusMessage"></div>
+        <div class="section-title">Operational Practices:</div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="securityUpdates">
+            <label for="securityUpdates">Periodic check of security updates & patches by IT Champion</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="nonAdminUsage">
+            <label for="nonAdminUsage">Non-use of Administrator account for daily work</label>
+        </div>
+        
+        <div class="checkbox-item">
+            <input type="checkbox" id="emailBackup">
+            <label for="emailBackup">Ensure weekly desktop mail backup using Outlook</label>
+        </div>
 
-            <div class="section">
-                <div class="section-title">
-                    <div class="section-icon">🌐</div>
-                    Network Connectivity Information
-                </div>
-                <p style="font-style: italic; color: var(--text-secondary); margin-bottom: 20px;">
-                    To be filled by the IT Champion
-                </p>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label" for="buildingSwitchIP">Building Switch IP Address</label>
-                        <input type="text" id="buildingSwitchIP" class="form-input" placeholder="e.g., 192.168.1.1">
-                        <div class="validation-message" id="buildingSwitchIP-validation"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="buildingSwitchPort">Building Switch Port No.</label>
-                        <input type="text" id="buildingSwitchPort" class="form-input" placeholder="e.g., Port 24">
-                        <div class="validation-message" id="buildingSwitchPort-validation"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="accessSwitchIP">Access Switch IP Address</label>
-                        <input type="text" id="accessSwitchIP" class="form-input" placeholder="e.g., 192.168.2.1">
-                        <div class="validation-message" id="accessSwitchIP-validation"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="accessSwitchPort">Access Switch Port No.</label>
-                        <input type="text" id="accessSwitchPort" class="form-input" placeholder="e.g., Port 12">
-                        <div class="validation-message" id="accessSwitchPort-validation"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="ioPort">I/O Port No.</label>
-                        <input type="text" id="ioPort" class="form-input" placeholder="e.g., 8080">
-                        <div class="validation-message" id="ioPort-validation"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="section-title">
-                    <div class="section-icon">⚙️</div>
-                    Configuration Parameters
-                </div>
-                <ul class="checkbox-list" id="configParams">
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkLegalOS">
-                            Legal OS and Application Software
-                        </label>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkAntivirus">
-                            Loaded Antivirus (Brand & Version)
-                        </label>
-                        <div class="antivirus-details" id="antivirusDetails">
-                            <label class="form-label" for="antivirusInput">Antivirus Brand & Version:</label>
-                            <input type="text" id="antivirusInput" class="form-input" placeholder="e.g., McAfee Total Protection v16.0">
-                        </div>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkUSB">
-                            Installed USB Pratirodh (Controlled removable media usage)
-                        </label>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkPassword">
-                            Strong Login Password (alphabets/numerals/special chars)
-                        </label>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkSeparate">
-                            Separate Administrator & User accounts
-                        </label>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkRemoteDesktop">
-                            Disabled Remote Desktop features
-                        </label>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkAutorun">
-                            Disabled Auto-run/Auto-play features
-                        </label>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkFirewall">
-                            Enabled Windows Firewall
-                        </label>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkFileSharing">
-                            Turned off File & Printer sharing
-                        </label>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="section">
-                <div class="section-title">
-                    <div class="section-icon">📋</div>
-                    Operational Practices
-                </div>
-                <ul class="checkbox-list" id="operationalPractices">
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkUpdates">
-                            Periodic check of security updates & patches by IT Champion
-                        </label>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkNoAdmin">
-                            Non-use of Administrator account for daily work
-                        </label>
-                    </li>
-                    <li class="checkbox-item">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="chkBackup">
-                            Ensure weekly desktop mail backup using Outlook
-                        </label>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="section">
-                <div class="section-title">
-                    <div class="section-icon">💬</div>
-                    IT Champion Comments
+        <div class="champion-details">
+            <h3>IT Champion Details</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="championName">Champion Name:</label>
+                    <input type="text" id="championName" readonly>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="itChampionComments">Additional Comments (Optional)</label>
-                    <textarea id="itChampionComments" class="form-input" rows="4" placeholder="Enter any additional comments or observations about the security setup..."></textarea>
+                    <label for="championCode">Champion Code:</label>
+                    <input type="text" id="championCode" placeholder="Enter Champion Code">
                 </div>
             </div>
-
-            <div class="hod-selection">
-                <div class="section-title">
-                    <div class="section-icon">👤</div>
-                    HOD Assignment
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="verificationDate">Verification Date:</label>
+                    <input type="date" id="verificationDate">
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="hodSelect">Send To (Head of Department):</label>
-                    <select id="hodSelect" class="form-input">
-                        <option value="">-- Select HOD --</option>
-                        <option value="Head_IT">Head of IT</option>
-                        <option value="Head_Security">Head of Security</option>
-                        <option value="Head_Admin">Head of Administration</option>
-                        <option value="Head_Finance">Head of Finance</option>
-                        <option value="Head_HR">Head of HR</option>
-                    </select>
+                    <label for="championPhone">Phone Number:</label>
+                    <input type="tel" id="championPhone" placeholder="Enter Phone Number">
                 </div>
             </div>
-
-            <div class="champion-info">
-                <div class="section-title">
-                    <div class="section-icon">✅</div>
-                    IT Champion Verification
-                </div>
-                <div class="champion-grid">
-                    <div class="form-group">
-                        <label class="form-label" for="championCode">Code:</label>
-                        <input type="text" id="championCode" class="form-input" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="championName">Name:</label>
-                        <input type="text" id="championName" class="form-input" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="championDivision">Division:</label>
-                        <input type="text" id="championDivision" class="form-input" readonly>
-                    </div>
-                </div>
-            </div>
-
-            <div class="submit-container">
-                <button type="submit" id="submitBtn" class="submit-btn" disabled>Complete All Fields</button>
-            </div>
-
-            <div class="note">
-                <strong>Note:</strong> The IT Champion must verify the above checklist before the submission of ECNET Application form.
+            <div class="form-group">
+                <label for="championEmail">Email:</label>
+                <input type="email" id="championEmail" placeholder="Enter Email Address">
             </div>
         </div>
 
-        <div class="footer">
-            Information Technology Services Division, ITSD
+        <div class="action-buttons">
+            <button class="btn btn-submit" onclick="forwardToHOD()">Forward to HOD</button>
+            <button class="btn btn-cancel" onclick="cancelReview()">Cancel</button>
         </div>
     </div>
 
     <script>
-        // Enhanced IT Champion Checklist Form Script
-        class ITChampionForm {
-            constructor() {
-                this.API_BASE_URL = '';
-                this.requestId = this.getRequestIdFromURL();
-                this.currentRequest = null;
-                this.allCheckboxes = [];
-                this.elements = this.initializeElements();
-                this.validationRules = this.initializeValidationRules();
+        const API_BASE = 'http://localhost:5024/api';
+        let currentRequests = [];
+        let selectedRequest = null;
+
+        // Check authentication
+        const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
+        if (!userInfo.username || userInfo.role !== 'ITChampion') {
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('currentUser').textContent = userInfo.username;
+        document.getElementById('championName').value = userInfo.username;
+
+        // Set today's date as default
+        document.getElementById('verificationDate').value = new Date().toISOString().split('T')[0];
+
+        // Load requests on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRequests();
+        });
+
+        async function loadRequests() {
+            try {
+                const response = await fetch(`${API_BASE}/Request`);
+                if (!response.ok) throw new Error('Failed to fetch requests');
                 
-                this.init();
-            }
-
-            getRequestIdFromURL() {
-                const urlParams = new URLSearchParams(window.location.search);
-                return urlParams.get('id');
-            }
-
-            initializeElements() {
-                return {
-                    // Request info
-                    requestIdSpan: document.getElementById('requestId'),
-                    departmentSpan: document.getElementById('department'),
-                    requestDateSpan: document.getElementById('requestDate'),
-                    requestStatusSpan: document.getElementById('requestStatus'),
-
-                    // Progress and status
-                    progressFill: document.getElementById('progressFill'),
-                    progressText: document.getElementById('progressText'),
-                    statusMessage: document.getElementById('statusMessage'),
-
-                    // Form fields
-                    buildingSwitchIP: document.getElementById('buildingSwitchIP'),
-                    buildingSwitchPort: document.getElementById('buildingSwitchPort'),
-                    accessSwitchIP: document.getElementById('accessSwitchIP'),
-                    accessSwitchPort: document.getElementById('accessSwitchPort'),
-                    ioPort: document.getElementById('ioPort'),
-
-                    // Checkboxes
-                    chkLegalOS: document.getElementById('chkLegalOS'),
-                    chkAntivirus: document.getElementById('chkAntivirus'),
-                    antivirusDetails: document.getElementById('antivirusDetails'),
-                    antivirusInput: document.getElementById('antivirusInput'),
-                    chkUSB: document.getElementById('chkUSB'),
-                    chkPassword: document.getElementById('chkPassword'),
-                    chkSeparate: document.getElementById('chkSeparate'),
-                    chkRemoteDesktop: document.getElementById('chkRemoteDesktop'),
-                    chkAutorun: document.getElementById('chkAutorun'),
-                    chkFirewall: document.getElementById('chkFirewall'),
-                    chkFileSharing: document.getElementById('chkFileSharing'),
-                    chkUpdates: document.getElementById('chkUpdates'),
-                    chkNoAdmin: document.getElementById('chkNoAdmin'),
-                    chkBackup: document.getElementById('chkBackup'),
-
-                    // Comments and selection
-                    itChampionComments: document.getElementById('itChampionComments'),
-                    hodSelect: document.getElementById('hodSelect'),
-                    championCode: document.getElementById('championCode'),
-                    championName: document.getElementById('championName'),
-                    championDivision: document.getElementById('championDivision'),
-
-                    // Submit button
-                    submitBtn: document.getElementById('submitBtn')
-                };
-            }
-
-            initializeValidationRules() {
-                return {
-                    ip: {
-                        pattern: /^(\d{1,3}\.){3}\d{1,3}$/,
-                        validate: (value) => {
-                            if (!value) return { valid: false, message: 'IP address is required' }; // Changed to required
-                            const parts = value.split('.');
-                            if (parts.length !== 4) return { valid: false, message: 'Invalid IP format (e.g., 192.168.1.1)' };
-                            for (let part of parts) {
-                                const num = parseInt(part);
-                                if (isNaN(num) || num < 0 || num > 255) {
-                                    return { valid: false, message: 'IP octets must be 0-255' };
-                                }
-                            }
-                            return { valid: true, message: 'Valid IP address' };
-                        }
-                    },
-                    port: {
-                        pattern: /^(Port\s+)?\d+$/i,
-                        validate: (value) => {
-                            if (!value) return { valid: false, message: 'Port number is required' }; // Changed to required
-                            const portNum = value.replace(/Port\s+/i, '');
-                            const num = parseInt(portNum);
-                            if (isNaN(num) || num < 1 || num > 65535) {
-                                return { valid: false, message: 'Port must be between 1 and 65535' };
-                            }
-                            return { valid: true, message: 'Valid port number' };
-                        }
-                    },
-                    antivirus: {
-                        validate: (value, isChecked) => {
-                            if (isChecked && !value) {
-                                return { valid: false, message: 'Antivirus Brand & Version is required.' };
-                            }
-                            return { valid: true, message: '' };
-                        }
-                    },
-                    hod: {
-                        validate: (value) => {
-                            if (!value) {
-                                return { valid: false, message: 'HOD selection is required.' };
-                            }
-                            return { valid: true, message: '' };
-                        }
-                    }
-                };
-            }
-
-            async init() {
-                try {
-                    await this.checkAuthentication();
-                    await this.loadInitialData();
-                    this.setupEventListeners();
-                    this.updateProgress();
-                    this.updateSubmitState();
-                } catch (error) {
-                    console.error('Initialization error:', error);
-                    this.showMessage('Error initializing form: ' + error.message, 'error');
-                }
-            }
-
-            async checkAuthentication() {
-                const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
-                if (!userInfo.username || userInfo.role !== 'ITChampion') {
-                    this.showMessage('Authentication required. Redirecting to login...', 'error');
-                    setTimeout(() => {
-                        window.location.href = 'index.html'; // Assuming your login page is index.html
-                    }, 2000);
-                    throw new Error('Authentication failed');
-                }
-
-                // Populate champion info
-                this.elements.championCode.value = userInfo.userId || 'N/A';
-                this.elements.championName.value = userInfo.username || 'N/A';
-                this.elements.championDivision.value = 'Information Technology Services Division'; // Static for now, can be dynamic
-            }
-
-            async loadInitialData() {
-                await Promise.all([
-                    this.loadRequestData(),
-                    this.loadHODUsers()
-                ]);
-            }
-
-            async loadRequestData() {
-                if (!this.requestId) {
-                    // If no request ID in URL, just show a message and use mock data
-                    this.showMessage("No Request ID found in URL. Loading demo data.", 'warning');
-                    this.currentRequest = this.getMockRequestData();
-                    this.populateFormWithRequestData(this.currentRequest);
-                    return;
-                }
-
-                try {
-                    // In a real application, you'd fetch specific request data by ID
-                    // const response = await fetch(`${this.API_BASE_URL}/requests/${this.requestId}`);
-                    // if (!response.ok) {
-                    //     throw new Error(`HTTP error! status: ${response.status}`);
-                    // }
-                    // this.currentRequest = await response.json();
-
-                    // Simulating API call for ViewRequestsHandler.ashx with a filter
-                    const response = await fetch(`ViewRequestsHandler.ashx?id=${this.requestId}`);
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch request data: ${response.statusText}`);
-                    }
-                    const requests = await response.json();
-                    if (requests.length > 0) {
-                        this.currentRequest = requests[0]; // Assuming the handler returns an array and we take the first match
-                        this.populateFormWithRequestData(this.currentRequest);
-                    } else {
-                        // If ID specific data not found, try fetching all and then filter
-                        const allRequestsResponse = await fetch('ViewRequestsHandler.ashx');
-                        if (!allRequestsResponse.ok) {
-                            throw new Error(`Failed to fetch all requests: ${allRequestsResponse.statusText}`);
-                        }
-                        const allRequests = await allRequestsResponse.json();
-                        const foundRequest = allRequests.find(req => req.Id == this.requestId); // Use == for type coercion
-                        if (foundRequest) {
-                            this.currentRequest = foundRequest;
-                            this.populateFormWithRequestData(this.currentRequest);
-                        } else {
-                            throw new Error(`Request with ID ${this.requestId} not found.`);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error fetching request data:', error);
-                    // Fallback to mock data for demo purposes if API fails or data not found
-                    this.currentRequest = this.getMockRequestData();
-                    this.populateFormWithRequestData(this.currentRequest);
-                    this.showMessage(`Could not load request data from server. Using demo data. (${error.message})`, 'error');
-                }
-            }
-
-            getMockRequestData() {
-                const today = new Date();
-                return {
-                    Id: this.requestId || 'REQ001', // Use actual ID if available, else a mock one
-                    ApplicantName: 'John Doe',
-                    Department: 'Software Development',
-                    RequestDate: today.toLocaleDateString('en-GB'), // DD/MM/YYYY format
-                    Status: 'Pending IT Champion Review',
-                    SystemMake: 'Dell OptiPlex',
-                    Configuration: 'i7, 16GB RAM, 512GB SSD',
-                    OsName: 'Windows 10 Pro',
-                    AntivirusName: 'McAfee Total Protection v16.0',
-                    MacAddress: '00:1A:2B:3C:4D:5E',
-                    ItChampionName: 'Rajesh Kumar',
-                    ItChampionComments: '',
-                    WorkflowStage: 'IT Champion Review In Progress',
-                    ItChampionReviewDate: null,
-                    HodComments: null,
-                    BuildingSwitchIP: '', // Add these mock values to match form fields
-                    BuildingSwitchPort: '',
-                    AccessSwitchIP: '',
-                    AccessSwitchPort: '',
-                    IoPort: '',
-                    // Checkbox states (mocked to false initially for a new checklist)
-                    LegalOSChecked: false,
-                    AntivirusLoadedChecked: false,
-                    USBPratirodhChecked: false,
-                    StrongPasswordChecked: false,
-                    SeparateAccountsChecked: false,
-                    RemoteDesktopDisabledChecked: false,
-                    AutorunDisabledChecked: false,
-                    FirewallEnabledChecked: false,
-                    FileSharingOffChecked: false,
-                    SecurityUpdatesChecked: false,
-                    NoAdminAccountUsedChecked: false,
-                    WeeklyBackupChecked: false,
-                    SelectedHOD: ''
-                };
-            }
-
-            populateFormWithRequestData(data) {
-                this.elements.requestIdSpan.textContent = data.Id || 'N/A';
-                this.elements.departmentSpan.textContent = data.Department || 'N/A';
-                this.elements.requestDateSpan.textContent = data.RequestDate ? new Date(data.RequestDate).toLocaleDateString('en-GB') : 'N/A';
-                this.elements.requestStatusSpan.textContent = data.Status || 'N/A';
-
-                // Populate network info if available from previous saves (e.g., if re-editing)
-                this.elements.buildingSwitchIP.value = data.BuildingSwitchIP || '';
-                this.elements.buildingSwitchPort.value = data.BuildingSwitchPort || '';
-                this.elements.accessSwitchIP.value = data.AccessSwitchIP || '';
-                this.elements.accessSwitchPort.value = data.AccessSwitchPort || '';
-                this.elements.ioPort.value = data.IoPort || '';
-
-                // Populate checkboxes and related fields if data exists
-                this.elements.chkLegalOS.checked = data.LegalOSChecked || false;
-                this.elements.chkAntivirus.checked = data.AntivirusLoadedChecked || false;
-                this.elements.antivirusInput.value = data.AntivirusName || '';
-                if (this.elements.chkAntivirus.checked) {
-                    this.elements.antivirusDetails.style.display = 'block';
-                }
-
-                this.elements.chkUSB.checked = data.USBPratirodhChecked || false;
-                this.elements.chkPassword.checked = data.StrongPasswordChecked || false;
-                this.elements.chkSeparate.checked = data.SeparateAccountsChecked || false;
-                this.elements.chkRemoteDesktop.checked = data.RemoteDesktopDisabledChecked || false;
-                this.elements.chkAutorun.checked = data.AutorunDisabledChecked || false;
-                this.elements.chkFirewall.checked = data.FirewallEnabledChecked || false;
-                this.elements.chkFileSharing.checked = data.FileSharingOffChecked || false;
-
-                this.elements.chkUpdates.checked = data.SecurityUpdatesChecked || false;
-                this.elements.chkNoAdmin.checked = data.NoAdminAccountUsedChecked || false;
-                this.elements.chkBackup.checked = data.WeeklyBackupChecked || false;
-
-                this.elements.itChampionComments.value = data.ItChampionComments || '';
-                this.elements.hodSelect.value = data.SelectedHOD || '';
-
-                // Update checkbox styling
-                document.querySelectorAll('.checkbox-list input[type="checkbox"]').forEach(checkbox => {
-                    const listItem = checkbox.closest('.checkbox-item');
-                    if (checkbox.checked) {
-                        listItem.classList.add('checked');
-                    } else {
-                        listItem.classList.remove('checked');
-                    }
-                });
-
-                // Apply initial validation states
-                this.validateAllInputs();
-            }
-
-            async loadHODUsers() {
-                try {
-                    // In a real application, you'd fetch the list of HODs
-                    // const response = await fetch(`${this.API_BASE_URL}/users?role=HOD`);
-                    // if (!response.ok) {
-                    //     throw new Error(`HTTP error! status: ${response.status}`);
-                    // }
-                    // const hods = await response.json();
-
-                    // Mock data for HODs
-                    const hods = [
-                        { id: 'HOD001', name: 'Head of IT', email: 'head.it@ecil.com' },
-                        { id: 'HOD002', name: 'Head of Security', email: 'head.security@ecil.com' },
-                        { id: 'HOD003', name: 'Head of Administration', email: 'head.admin@ecil.com' },
-                        { id: 'HOD004', name: 'Head of Finance', email: 'head.finance@ecil.com' },
-                        { id: 'HOD005', name: 'Head of HR', email: 'head.hr@ecil.com' }
-                    ];
-
-                    hods.forEach(hod => {
-                        const option = document.createElement('option');
-                        option.value = hod.id; // Or hod.email for actual submission
-                        option.textContent = hod.name;
-                        this.elements.hodSelect.appendChild(option);
-                    });
-                } catch (error) {
-                    console.error('Error loading HOD users:', error);
-                    this.showMessage('Failed to load HOD list. Please refresh.', 'error');
-                }
-            }
-
-            setupEventListeners() {
-                // Collect all checkboxes for progress tracking
-                this.allCheckboxes = Array.from(document.querySelectorAll('.checkbox-list input[type="checkbox"]'));
-
-                // Input validation on blur and input
-                [
-                    this.elements.buildingSwitchIP,
-                    this.elements.buildingSwitchPort,
-                    this.elements.accessSwitchIP,
-                    this.elements.accessSwitchPort,
-                    this.elements.ioPort,
-                    this.elements.antivirusInput,
-                    this.elements.hodSelect
-                ].forEach(input => {
-                    input.addEventListener('blur', this.handleInputValidation.bind(this, input));
-                    input.addEventListener('input', this.handleInputValidation.bind(this, input));
-                });
-
-
-                this.elements.chkAntivirus.addEventListener('change', (event) => {
-                    if (event.target.checked) {
-                        this.elements.antivirusDetails.style.display = 'block';
-                        this.elements.antivirusInput.focus();
-                    } else {
-                        this.elements.antivirusDetails.style.display = 'none';
-                        this.elements.antivirusInput.value = ''; // Clear input if unchecked
-                    }
-                    this.updateProgress();
-                    this.updateSubmitState();
-                });
-
-                this.allCheckboxes.forEach(checkbox => {
-                    checkbox.addEventListener('change', (event) => {
-                        const listItem = event.target.closest('.checkbox-item');
-                        if (event.target.checked) {
-                            listItem.classList.add('checked');
-                        } else {
-                            listItem.classList.remove('checked');
-                        }
-                        this.updateProgress();
-                        this.updateSubmitState();
-                    });
-                });
-
-                this.elements.hodSelect.addEventListener('change', () => {
-                    this.updateSubmitState();
-                });
-
-                this.elements.submitBtn.addEventListener('click', this.handleSubmit.bind(this));
-            }
-
-            handleInputValidation(inputElement) {
-                let isValid = true;
-                let message = '';
-                let validationType = '';
-
-                switch (inputElement.id) {
-                    case 'buildingSwitchIP':
-                    case 'accessSwitchIP':
-                        const ipValidation = this.validationRules.ip.validate(inputElement.value);
-                        isValid = ipValidation.valid;
-                        message = ipValidation.message;
-                        validationType = 'ip';
-                        break;
-                    case 'buildingSwitchPort':
-                    case 'accessSwitchPort':
-                    case 'ioPort':
-                        const portValidation = this.validationRules.port.validate(inputElement.value);
-                        isValid = portValidation.valid;
-                        message = portValidation.message;
-                        validationType = 'port';
-                        break;
-                    case 'antivirusInput':
-                        const antivirusChecked = this.elements.chkAntivirus.checked;
-                        const antivirusValidation = this.validationRules.antivirus.validate(inputElement.value, antivirusChecked);
-                        isValid = antivirusValidation.valid;
-                        message = antivirusValidation.message;
-                        validationType = 'antivirus';
-                        break;
-                    case 'hodSelect':
-                        const hodValidation = this.validationRules.hod.validate(inputElement.value);
-                        isValid = hodValidation.valid;
-                        message = hodValidation.message;
-                        validationType = 'hod';
-                        break;
-                }
+                currentRequests = await response.json();
+                // Filter for pending requests that need IT Champion review
+                const pendingRequests = currentRequests.filter(req => req.status === 'Pending');
+                displayRequests(pendingRequests);
                 
-                this.displayValidationMessage(inputElement, isValid, message);
-                this.updateSubmitState(); // Re-check submit button state after validation
-            }
-
-            displayValidationMessage(inputElement, isValid, message) {
-                const validationDiv = document.getElementById(`${inputElement.id}-validation`);
-                if (validationDiv) {
-                    validationDiv.textContent = message;
-                    validationDiv.className = 'validation-message'; // Reset classes
-                    if (message) {
-                        validationDiv.style.display = 'block';
-                        inputElement.classList.remove('valid', 'invalid');
-                        if (isValid) {
-                            validationDiv.classList.add('validation-success');
-                            inputElement.classList.add('valid');
-                        } else {
-                            validationDiv.classList.add('validation-error');
-                            inputElement.classList.add('invalid');
-                        }
-                    } else {
-                        validationDiv.style.display = 'none';
-                        inputElement.classList.remove('valid', 'invalid');
-                    }
-                }
-            }
-
-            validateAllInputs() {
-                let allInputsValid = true;
-                const inputsToValidate = [
-                    this.elements.buildingSwitchIP,
-                    this.elements.buildingSwitchPort,
-                    this.elements.accessSwitchIP,
-                    this.elements.accessSwitchPort,
-                    this.elements.ioPort,
-                    this.elements.antivirusInput,
-                    this.elements.hodSelect
-                ];
-
-                inputsToValidate.forEach(input => {
-                    this.handleInputValidation(input); // This will update the validation message and class for each input
-                    const validationDiv = document.getElementById(`${input.id}-validation`);
-                    if (validationDiv && validationDiv.classList.contains('validation-error')) {
-                        allInputsValid = false;
-                    }
-                });
-
-                return allInputsValid;
-            }
-
-            updateProgress() {
-                const totalCheckboxes = this.allCheckboxes.length;
-                const checkedCheckboxes = this.allCheckboxes.filter(cb => cb.checked).length;
-                
-                // Account for antivirus input being filled if checkbox is checked
-                const antivirusRequired = this.elements.chkAntivirus.checked;
-                const antivirusFilled = this.elements.antivirusInput.value.trim() !== '';
-
-                let completedItems = checkedCheckboxes;
-                let totalItemsForProgress = totalCheckboxes;
-
-                // If antivirus checkbox is checked, and input is not filled, don't count it as complete
-                if (antivirusRequired && !antivirusFilled) {
-                    // Do not increment completedItems for antivirus, as it's handled by its input validation
-                }
-
-                // If antivirus checkbox is unchecked, we don't care about the text input for progress
-                if (!antivirusRequired) {
-                    // This checkbox is effectively "completed" if it's unchecked, or if it's checked AND the input is filled.
-                    // The standard .filter(cb => cb.checked) already handles the checked part.
-                    // If unchecked, it's considered complete for progress.
-                }
-
-                // Consider required text fields and HOD selection as part of overall progress
-                const requiredInputs = [
-                    this.elements.buildingSwitchIP,
-                    this.elements.buildingSwitchPort,
-                    this.elements.accessSwitchIP,
-                    this.elements.accessSwitchPort,
-                    this.elements.ioPort,
-                    this.elements.hodSelect
-                ];
-                
-                let filledRequiredInputs = 0;
-                requiredInputs.forEach(input => {
-                    // For text inputs, check if they are valid (i.e., pass their specific validation)
-                    // For select, check if a value is selected
-                    let isValid;
-                    if (input.tagName === 'SELECT') {
-                        isValid = input.value !== '';
-                    } else {
-                        // Use the validation function directly and check its 'valid' property
-                        const validationResult = this.validationRules[input.id.includes('IP') ? 'ip' : 'port'].validate(input.value);
-                        isValid = validationResult.valid;
-                    }
-
-                    if (isValid) {
-                        filledRequiredInputs++;
-                    }
-                });
-
-                // Special handling for antivirus input: it counts towards progress *only if* the checkbox is checked AND the input is filled.
-                // If the checkbox is checked but the input is empty, it's not "complete".
-                // If the checkbox is unchecked, it implicitly satisfies this item.
-                let antivirusInputSatisfied = !this.elements.chkAntivirus.checked || (this.elements.chkAntivirus.checked && this.elements.antivirusInput.value.trim() !== '');
-
-                // Calculate total completion based on checkboxes and required inputs
-                // Each checkbox contributes 1, each required input field contributes 1.
-                // The antivirus input is integrated with its checkbox.
-                let totalCompletableItems = this.allCheckboxes.length + requiredInputs.length;
-                
-                let currentlyCompletedItems = 0;
-                this.allCheckboxes.forEach(cb => {
-                    if (cb.checked) {
-                        if (cb.id === 'chkAntivirus') {
-                            if (antivirusInputSatisfied) {
-                                currentlyCompletedItems++;
-                            }
-                        } else {
-                            currentlyCompletedItems++;
-                        }
-                    } else if (cb.id === 'chkAntivirus' && !cb.checked) {
-                         // If antivirus is unchecked, it means the user opted out, so it's "complete" for progress.
-                         currentlyCompletedItems++;
-                    } else if (cb.id !== 'chkAntivirus') {
-                        // If other checkboxes are unchecked, they are not complete.
-                    }
-                });
-
-                requiredInputs.forEach(input => {
-                    let isValid;
-                    if (input.tagName === 'SELECT') {
-                        isValid = input.value !== '';
-                    } else {
-                        const validationResult = this.validationRules[input.id.includes('IP') ? 'ip' : 'port'].validate(input.value);
-                        isValid = validationResult.valid;
-                    }
-                    if (isValid) {
-                        currentlyCompletedItems++;
-                    }
-                });
-
-                // Adjust for antivirus input not being a separate "required input" but tied to the checkbox
-                // We've already handled its logic above by checking `antivirusInputSatisfied` when `chkAntivirus` is checked.
-                // If `chkAntivirus` is unchecked, the `antivirusInput` is not required and is implicitly complete for progress calculation.
-                // So, remove it from `requiredInputs` count if it was added or handle its distinct contribution.
-
-                // A cleaner way to calculate:
-                let totalPossibleItems = this.allCheckboxes.length + requiredInputs.length; // Max items if all are filled correctly
-                let actualCompletedCount = 0;
-
-                // Count completed checkboxes
-                this.allCheckboxes.forEach(cb => {
-                    if (cb.id === 'chkAntivirus') {
-                        if (antivirusInputSatisfied) {
-                            actualCompletedCount++;
-                        }
-                    } else if (cb.checked) {
-                        actualCompletedCount++;
-                    }
-                });
-
-                // Count completed required inputs (excluding antivirus input itself, as it's handled by its checkbox)
-                requiredInputs.forEach(input => {
-                    let isValid;
-                    if (input.tagName === 'SELECT') {
-                        isValid = input.value !== '';
-                    } else {
-                        const validationResult = this.validationRules[input.id.includes('IP') ? 'ip' : 'port'].validate(input.value);
-                        isValid = validationResult.valid;
-                    }
-                    if (isValid) {
-                        actualCompletedCount++;
-                    }
-                });
-                
-                const percentage = totalPossibleItems > 0 ? Math.round((actualCompletedCount / totalPossibleItems) * 100) : 0;
-                this.elements.progressFill.style.width = `${percentage}%`;
-                this.elements.progressFill.textContent = `${percentage}%`;
-                this.elements.progressText.textContent = `${actualCompletedCount} of ${totalPossibleItems} items completed`;
-            }
-
-
-            updateSubmitState() {
-                let allRequiredFieldsFilled = this.validateAllInputs(); // This also updates individual input visual states
-
-                // Check all checkboxes are checked OR antivirus is unchecked and its input is empty
-                const allCheckboxesChecked = this.allCheckboxes.every(checkbox => {
-                    if (checkbox.id === 'chkAntivirus') {
-                        return !checkbox.checked || (checkbox.checked && this.elements.antivirusInput.value.trim() !== '');
-                    }
-                    return checkbox.checked;
-                });
-
-                // Check HOD selection
-                const hodSelected = this.elements.hodSelect.value !== '';
-
-                // The submit button is enabled only if all validations pass and all applicable checkboxes are checked
-                this.elements.submitBtn.disabled = !(allRequiredFieldsFilled && allCheckboxesChecked && hodSelected);
-
-                if (!this.elements.submitBtn.disabled) {
-                    this.elements.submitBtn.textContent = 'Submit Checklist';
-                } else {
-                    this.elements.submitBtn.textContent = 'Complete All Fields';
-                }
-            }
-
-            showMessage(message, type = 'info') {
-                const msgElement = this.elements.statusMessage;
-                msgElement.textContent = message;
-                msgElement.className = 'status-message'; // Reset classes
-                msgElement.style.display = 'block';
-
-                if (type === 'success') {
-                    msgElement.classList.add('status-success');
-                } else if (type === 'error') {
-                    msgElement.classList.add('status-error');
-                }
-                // Info by default has no special class
-            }
-
-            async handleSubmit(event) {
-                event.preventDefault();
-
-                // Re-run validation one last time
-                if (!this.validateAllInputs()) {
-                    this.showMessage('Please correct the highlighted errors in the form.', 'error');
-                    // Scroll to the first invalid element
-                    const firstInvalid = document.querySelector('.form-input.invalid, .validation-error');
-                    if (firstInvalid) {
-                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                    return;
-                }
-
-                // Check if all checkboxes are marked as checked (including antivirus logic)
-                const allCheckboxesSatisfied = this.allCheckboxes.every(checkbox => {
-                    if (checkbox.id === 'chkAntivirus') {
-                        // Antivirus checkbox is "satisfied" if it's checked AND its input is filled, OR if it's unchecked.
-                        return !checkbox.checked || (checkbox.checked && this.elements.antivirusInput.value.trim() !== '');
-                    }
-                    return checkbox.checked;
-                });
-                if (!allCheckboxesSatisfied) {
-                    this.showMessage('Please check all required Configuration and Operational Practices.', 'error');
-                    return;
-                }
-                 // Check HOD selection
-                const hodSelected = this.elements.hodSelect.value !== '';
-                if (!hodSelected) {
-                    this.showMessage('Please select a Head of Department.', 'error');
-                    return;
-                }
-
-
-                this.elements.submitBtn.disabled = true;
-                this.elements.submitBtn.innerHTML = '<span class="loading-spinner"></span> Submitting...';
-                this.showMessage('Submitting checklist...', 'info');
-
-                const formData = this.collectFormData();
-                console.log('Submitting Data:', formData); // For debugging
-
-                try {
-                    // In a real application, you'd send this data to a specific endpoint
-                    // e.g., for updating the request with IT Champion's checklist
-                    // const response = await fetch(`${this.API_BASE_URL}/requests/${this.requestId}/it-champion-checklist`, {
-                    //     method: 'POST', // Or PATCH/PUT if updating an existing record
-                    //     headers: {
-                    //         'Content-Type': 'application/json'
-                    //     },
-                    //     body: JSON.stringify(formData)
-                    // });
-
-                    // Simulating API call for now
-                    const response = await new Promise(resolve => setTimeout(() => {
-                        // Mock a successful response
-                        resolve({
-                            ok: true,
-                            json: () => Promise.resolve({ success: true, message: 'Checklist submitted successfully!' })
-                        });
-                        // Mock an error response
-                        // resolve({
-                        //     ok: false,
-                        //     status: 500,
-                        //     statusText: 'Internal Server Error',
-                        //     json: () => Promise.resolve({ success: false, message: 'Failed to save checklist.' })
-                        // });
-                    }, 2000));
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || 'Submission failed.');
-                    }
-
-                    const result = await response.json();
-                    this.showMessage(result.message || 'Checklist submitted successfully!', 'success');
-                    // Optionally disable fields or redirect after successful submission
-                    this.disableFormFields();
-                } catch (error) {
-                    console.error('Submission error:', error);
-                    this.showMessage('Submission failed: ' + error.message, 'error');
-                } finally {
-                    this.elements.submitBtn.disabled = false;
-                    this.elements.submitBtn.textContent = 'Submit Checklist';
-                    this.updateSubmitState(); // Re-enable if not fully complete or on error
-                }
-            }
-
-            collectFormData() {
-                const formData = {
-                    requestId: this.requestId,
-                    itChampionCode: this.elements.championCode.value,
-                    itChampionName: this.elements.championName.value,
-                    itChampionDivision: this.elements.championDivision.value,
-                    itChampionReviewDate: new Date().toISOString(),
-                    buildingSwitchIP: this.elements.buildingSwitchIP.value,
-                    buildingSwitchPort: this.elements.buildingSwitchPort.value,
-                    accessSwitchIP: this.elements.accessSwitchIP.value,
-                    accessSwitchPort: this.elements.accessSwitchPort.value,
-                    ioPort: this.elements.ioPort.value,
-                    legalOSChecked: this.elements.chkLegalOS.checked,
-                    antivirusLoadedChecked: this.elements.chkAntivirus.checked,
-                    antivirusBrandVersion: this.elements.antivirusInput.value.trim(),
-                    usbPratirodhChecked: this.elements.chkUSB.checked,
-                    strongPasswordChecked: this.elements.chkPassword.checked,
-                    separateAccountsChecked: this.elements.chkSeparate.checked,
-                    remoteDesktopDisabledChecked: this.elements.chkRemoteDesktop.checked,
-                    autorunDisabledChecked: this.elements.chkAutorun.checked,
-                    windowsFirewallEnabledChecked: this.elements.chkFirewall.checked,
-                    filePrinterSharingOffChecked: this.elements.chkFileSharing.checked,
-                    periodicSecurityUpdatesChecked: this.elements.chkUpdates.checked,
-                    nonAdminAccountUsedChecked: this.elements.chkNoAdmin.checked,
-                    weeklyMailBackupChecked: this.elements.chkBackup.checked,
-                    itChampionComments: this.elements.itChampionComments.value.trim(),
-                    hodAssigned: this.elements.hodSelect.value, // Send the selected HOD ID/value
-                    // Status update for the request
-                    newRequestStatus: 'Ready for HOD Approval', // Assuming this is the next status
-                    workflowStage: 'HOD Approval Pending'
-                };
-                return formData;
-            }
-
-            disableFormFields() {
-                // Disable all form inputs and checkboxes after successful submission
-                const formElements = document.querySelectorAll('.form-input, .checkbox-list input[type="checkbox"], #hodSelect, textarea');
-                formElements.forEach(element => {
-                    element.disabled = true;
-                });
-                this.elements.submitBtn.disabled = true;
-                this.elements.submitBtn.textContent = 'Submitted';
-                this.elements.submitBtn.style.background = '#6c757d'; // Grey out button
-                this.elements.antivirusDetails.style.pointerEvents = 'none'; // Prevent interaction
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('requestsTable').style.display = 'table';
+            } catch (error) {
+                showMessage('Error loading requests: ' + error.message, 'error');
             }
         }
 
-        // Initialize the form when the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            new ITChampionForm();
-        });
+        function displayRequests(requests) {
+            const tbody = document.getElementById('requestsTableBody');
+            tbody.innerHTML = '';
+
+            if (requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">No pending requests found</td></tr>';
+                return;
+            }
+
+            requests.forEach(request => {
+                const details = request.details ? JSON.parse(request.details) : {};
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${request.id}</td>
+                    <td>${details.applicantName || 'N/A'}</td>
+                    <td>${request.department || 'N/A'}</td>
+                    <td>${details.systemMake || 'N/A'}</td>
+                    <td>${new Date(request.requestDate).toLocaleDateString()}</td>
+                    <td><span class="status-badge status-${request.status.toLowerCase()}">${request.status}</span></td>
+                `;
+                
+                row.addEventListener('click', () => selectRequest(request, row));
+                tbody.appendChild(row);
+            });
+        }
+
+        function selectRequest(request, row) {
+            // Remove previous selection
+            document.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+            
+            // Select current row
+            row.classList.add('selected');
+            selectedRequest = request;
+            
+            // Show checklist panel
+            document.getElementById('checklistPanel').style.display = 'block';
+            
+            // Scroll to checklist
+            document.getElementById('checklistPanel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function forwardToHOD() {
+            if (!selectedRequest) {
+                showMessage('Please select a request first', 'error');
+                return;
+            }
+
+            // Validate required fields
+            const requiredFields = [
+                'championCode', 'verificationDate', 'championPhone', 'championEmail',
+                'buildingSwitchIP', 'buildingSwitchPort', 'accessSwitchIP', 'accessSwitchPort', 'ioPortNo'
+            ];
+
+            for (let field of requiredFields) {
+                if (!document.getElementById(field).value) {
+                    showMessage(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
+                    return;
+                }
+            }
+
+            // Check if at least some checkboxes are checked
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
+            
+            if (checkedBoxes.length === 0) {
+                showMessage('Please check at least one compliance item', 'error');
+                return;
+            }
+
+            try {
+                // Prepare checklist data
+                const checklistData = {
+                    buildingSwitchIP: document.getElementById('buildingSwitchIP').value,
+                    buildingSwitchPort: document.getElementById('buildingSwitchPort').value,
+                    accessSwitchIP: document.getElementById('accessSwitchIP').value,
+                    accessSwitchPort: document.getElementById('accessSwitchPort').value,
+                    ioPortNo: document.getElementById('ioPortNo').value,
+                    configurationChecks: {
+                        legalOS: document.getElementById('legalOS').checked,
+                        antivirus: document.getElementById('antivirus').checked,
+                        usbControl: document.getElementById('usbControl').checked,
+                        strongPassword: document.getElementById('strongPassword').checked,
+                        separateAccounts: document.getElementById('separateAccounts').checked,
+                        disableRDP: document.getElementById('disableRDP').checked,
+                        disableAutorun: document.getElementById('disableAutorun').checked,
+                        windowsFirewall: document.getElementById('windowsFirewall').checked,
+                        fileSharing: document.getElementById('fileSharing').checked
+                    },
+                    operationalChecks: {
+                        securityUpdates: document.getElementById('securityUpdates').checked,
+                        nonAdminUsage: document.getElementById('nonAdminUsage').checked,
+                        emailBackup: document.getElementById('emailBackup').checked
+                    },
+                    championDetails: {
+                        name: document.getElementById('championName').value,
+                        code: document.getElementById('championCode').value,
+                        verificationDate: document.getElementById('verificationDate').value,
+                        phone: document.getElementById('championPhone').value,
+                        email: document.getElementById('championEmail').value
+                    }
+                };
+
+                // Update request with IT Champion review
+                const updateData = {
+                    ...selectedRequest,
+                    itChampionName: userInfo.username,
+                    itChampionReviewDate: new Date().toISOString(),
+                    workflowStage: 'IT Champion Reviewed',
+                    checklistData: JSON.stringify(checklistData)
+                };
+
+                const response = await fetch(`${API_BASE}/Request/${selectedRequest.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (response.ok) {
+                    showMessage('Request successfully forwarded to HOD!', 'success');
+                    // Reset form and reload requests
+                    cancelReview();
+                    setTimeout(() => {
+                        loadRequests();
+                    }, 1000);
+                } else {
+                    throw new Error('Failed to update request');
+                }
+            } catch (error) {
+                showMessage('Error forwarding request: ' + error.message, 'error');
+            }
+        }
+
+        function cancelReview() {
+            // Hide checklist panel
+            document.getElementById('checklistPanel').style.display = 'none';
+            
+            // Clear selection
+            document.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+            selectedRequest = null;
+            
+            // Reset form
+            resetForm();
+        }
+
+        function resetForm() {
+            // Reset all checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
+            // Reset text inputs (except readonly ones)
+            document.querySelectorAll('input[type="text"]:not([readonly]), input[type="tel"], input[type="email"]').forEach(input => {
+                input.value = '';
+            });
+            
+            // Reset verification date to today
+            document.getElementById('verificationDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function logout() {
+            sessionStorage.removeItem('userInfo');
+            window.location.href = 'index.html';
+        }
     </script>
 </body>
 </html>
