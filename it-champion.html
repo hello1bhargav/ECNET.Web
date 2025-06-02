@@ -93,6 +93,11 @@
             color: #856404;
         }
 
+        .status-hod.approved {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
         .checklist-panel {
             background: white;
             border-radius: 10px;
@@ -462,11 +467,7 @@
     </div>
 
     <script>
-        // Updated to match your backend handlers
-        const HANDLERS = {
-            VIEW: 'ViewRequestsHandler.ashx',
-            UPDATE: 'UpdateRequestHandler.ashx'
-        };
+        const HANDLER_URL = 'ViewRequestHandler.ashx';
         
         let currentRequests = [];
         let selectedRequest = null;
@@ -490,15 +491,17 @@
 
         async function loadRequests() {
             try {
-                // Use the ViewRequestsHandler with query parameters to filter for IT Champion pending requests
-                const response = await fetch(`${HANDLERS.VIEW}?role=it-champion&status=Pending`);
+                const response = await fetch(`${HANDLER_URL}?role=it-champion`);
                 if (!response.ok) throw new Error('Failed to fetch requests');
                 
-                currentRequests = await response.json();
+                const result = await response.json();
+                currentRequests = result.Requests || [];
                 
-                // Additional filtering on frontend if needed
+                // Filter for IT Champion pending requests
                 const pendingRequests = currentRequests.filter(req => 
-                    req.Status === 'Pending' || req.WorkflowStage === 'Pending IT Champion Review'
+                    req.Status === 'HOD Approved' || 
+                    req.WorkflowStage === 'IT Champion Review' ||
+                    req.WorkflowStage === 'Pending IT Champion Review'
                 );
                 
                 displayRequests(pendingRequests);
@@ -507,7 +510,7 @@
                 document.getElementById('requestsTable').style.display = 'table';
             } catch (error) {
                 showMessage('Error loading requests: ' + error.message, 'error');
-                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('loadingMessage').innerHTML = 'Error loading requests';
             }
         }
 
@@ -516,40 +519,92 @@
             tbody.innerHTML = '';
 
             if (requests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">No pending requests found</td></tr>';
+                const row = tbody.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 7;
+                cell.textContent = 'No pending requests found';
+                cell.style.textAlign = 'center';
+                cell.style.padding = '20px';
+                cell.style.color = '#666';
                 return;
             }
 
             requests.forEach(request => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${request.Id}</td>
-                    <td>${request.ApplicantName || 'N/A'}</td>
-                    <td>${request.Department || 'N/A'}</td>
-                    <td>${request.SystemMake || 'N/A'}</td>
-                    <td>${new Date(request.RequestDate).toLocaleDateString()}</td>
-                    <td><span class="status-badge status-${request.Status.toLowerCase()}">${request.Status}</span></td>
-                    <td>${request.WorkflowStage || 'N/A'}</td>
-                `;
+                const row = tbody.insertRow();
+                row.onclick = () => selectRequest(request, row);
                 
-                row.addEventListener('click', () => selectRequest(request, row));
-                tbody.appendChild(row);
+                row.insertCell(0).textContent = request.RequestID || 'N/A';
+                row.insertCell(1).textContent = request.ApplicantName || 'N/A';
+                row.insertCell(2).textContent = request.Department || 'N/A';
+                row.insertCell(3).textContent = request.SystemMake || 'N/A';
+                row.insertCell(4).textContent = formatDate(request.RequestDate);
+                
+                const statusCell = row.insertCell(5);
+                const statusBadge = document.createElement('span');
+                statusBadge.className = `status-badge status-${request.Status?.toLowerCase().replace(' ', '-')}`;
+                statusBadge.textContent = request.Status || 'Unknown';
+                statusCell.appendChild(statusBadge);
+                
+                row.insertCell(6).textContent = request.WorkflowStage || 'N/A';
             });
         }
 
         function selectRequest(request, row) {
             // Remove previous selection
-            document.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+            const previousSelected = document.querySelector('tr.selected');
+            if (previousSelected) {
+                previousSelected.classList.remove('selected');
+            }
             
-            // Select current row
+            // Add selection to current row
             row.classList.add('selected');
             selectedRequest = request;
             
             // Show checklist panel
             document.getElementById('checklistPanel').style.display = 'block';
             
-            // Scroll to checklist
+            // Pre-populate any existing data
+            if (request.ITChampionReview) {
+                populateChecklistForm(request.ITChampionReview);
+            }
+            
+            // Scroll to checklist panel
             document.getElementById('checklistPanel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function populateChecklistForm(reviewData) {
+            // Populate ECNET connectivity details
+            if (reviewData.ConnectivityDetails) {
+                document.getElementById('buildingSwitchIP').value = reviewData.ConnectivityDetails.BuildingSwitchIP || '';
+                document.getElementById('buildingSwitchPort').value = reviewData.ConnectivityDetails.BuildingSwitchPort || '';
+                document.getElementById('accessSwitchIP').value = reviewData.ConnectivityDetails.AccessSwitchIP || '';
+                document.getElementById('accessSwitchPort').value = reviewData.ConnectivityDetails.AccessSwitchPort || '';
+                document.getElementById('ioPortNo').value = reviewData.ConnectivityDetails.IOPortNo || '';
+            }
+            
+            // Populate checkboxes
+            const checkboxes = [
+                'legalOS', 'antivirus', 'usbControl', 'strongPassword', 'separateAccounts',
+                'disableRDP', 'disableAutorun', 'windowsFirewall', 'fileSharing',
+                'securityUpdates', 'nonAdminUsage', 'emailBackup'
+            ];
+            
+            checkboxes.forEach(id => {
+                const checkbox = document.getElementById(id);
+                if (reviewData.ConfigChecks && reviewData.ConfigChecks[id]) {
+                    checkbox.checked = true;
+                }
+            });
+            
+            // Populate champion details
+            document.getElementById('championCode').value = reviewData.ChampionCode || '';
+            document.getElementById('championPhone').value = reviewData.ChampionPhone || '';
+            document.getElementById('championEmail').value = reviewData.ChampionEmail || '';
+            document.getElementById('itChampionComments').value = reviewData.Comments || '';
+            
+            if (reviewData.VerificationDate) {
+                document.getElementById('verificationDate').value = reviewData.VerificationDate;
+            }
         }
 
         async function forwardToHOD() {
@@ -559,88 +614,72 @@
             }
 
             // Validate required fields
-            const requiredFields = [
-                'championCode', 'verificationDate', 'championPhone', 'championEmail',
-                'buildingSwitchIP', 'buildingSwitchPort', 'accessSwitchIP', 'accessSwitchPort', 'ioPortNo'
-            ];
-
-            for (let field of requiredFields) {
-                if (!document.getElementById(field).value.trim()) {
-                    showMessage(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
+            const requiredFields = ['championCode', 'championPhone', 'championEmail'];
+            for (let fieldId of requiredFields) {
+                if (!document.getElementById(fieldId).value.trim()) {
+                    showMessage(`Please fill in the ${fieldId.replace(/([A-Z])/g, ' $1').toLowerCase()}`, 'error');
                     return;
                 }
             }
 
-            // Check if at least some checkboxes are checked
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
-            
-            if (checkedBoxes.length === 0) {
-                showMessage('Please check at least one compliance item', 'error');
-                return;
-            }
-
-            try {
-                // Prepare checklist data to store in IT Champion Comments
-                const checklistData = {
+            // Collect all form data
+            const formData = {
+                requestId: selectedRequest.RequestID,
+                action: 'forward_to_hod',
+                connectivityDetails: {
                     buildingSwitchIP: document.getElementById('buildingSwitchIP').value,
                     buildingSwitchPort: document.getElementById('buildingSwitchPort').value,
                     accessSwitchIP: document.getElementById('accessSwitchIP').value,
                     accessSwitchPort: document.getElementById('accessSwitchPort').value,
-                    ioPortNo: document.getElementById('ioPortNo').value,
-                    configurationChecks: {
-                        legalOS: document.getElementById('legalOS').checked,
-                        antivirus: document.getElementById('antivirus').checked,
-                        usbControl: document.getElementById('usbControl').checked,
-                        strongPassword: document.getElementById('strongPassword').checked,
-                        separateAccounts: document.getElementById('separateAccounts').checked,
-                        disableRDP: document.getElementById('disableRDP').checked,
-                        disableAutorun: document.getElementById('disableAutorun').checked,
-                        windowsFirewall: document.getElementById('windowsFirewall').checked,
-                        fileSharing: document.getElementById('fileSharing').checked
-                    },
-                    operationalChecks: {
-                        securityUpdates: document.getElementById('securityUpdates').checked,
-                        nonAdminUsage: document.getElementById('nonAdminUsage').checked,
-                        emailBackup: document.getElementById('emailBackup').checked
-                    },
-                    championDetails: {
-                        name: document.getElementById('championName').value,
-                        code: document.getElementById('championCode').value,
-                        verificationDate: document.getElementById('verificationDate').value,
-                        phone: document.getElementById('championPhone').value,
-                        email: document.getElementById('championEmail').value
-                    },
-                    reviewComments: document.getElementById('itChampionComments').value
-                };
+                    ioPortNo: document.getElementById('ioPortNo').value
+                },
+                configChecks: {
+                    legalOS: document.getElementById('legalOS').checked,
+                    antivirus: document.getElementById('antivirus').checked,
+                    usbControl: document.getElementById('usbControl').checked,
+                    strongPassword: document.getElementById('strongPassword').checked,
+                    separateAccounts: document.getElementById('separateAccounts').checked,
+                    disableRDP: document.getElementById('disableRDP').checked,
+                    disableAutorun: document.getElementById('disableAutorun').checked,
+                    windowsFirewall: document.getElementById('windowsFirewall').checked,
+                    fileSharing: document.getElementById('fileSharing').checked,
+                    securityUpdates: document.getElementById('securityUpdates').checked,
+                    nonAdminUsage: document.getElementById('nonAdminUsage').checked,
+                    emailBackup: document.getElementById('emailBackup').checked
+                },
+                championDetails: {
+                    name: document.getElementById('championName').value,
+                    code: document.getElementById('championCode').value,
+                    phone: document.getElementById('championPhone').value,
+                    email: document.getElementById('championEmail').value,
+                    verificationDate: document.getElementById('verificationDate').value,
+                    comments: document.getElementById('itChampionComments').value
+                }
+            };
 
-                // Prepare update data to match UpdateRequestHandler expectations
-                const updateData = {
-                    Id: selectedRequest.Id,
-                    Status: selectedRequest.Status, // Keep current status
-                    WorkflowStage: 'IT Champion Reviewed - Pending HOD Approval',
-                    ItChampionComments: JSON.stringify(checklistData) // Store all checklist data as JSON in comments
-                };
-
-                const response = await fetch(HANDLERS.UPDATE, {
+            try {
+                const response = await fetch(HANDLER_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(updateData)
+                    body: JSON.stringify(formData)
                 });
 
-                if (response.ok) {
-                    const result = await response.json();
-                    showMessage('Request successfully forwarded to HOD!', 'success');
+                if (!response.ok) throw new Error('Failed to submit review');
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Request successfully forwarded to HOD', 'success');
+                    
                     // Reset form and reload requests
-                    cancelReview();
+                    resetChecklistForm();
                     setTimeout(() => {
                         loadRequests();
-                    }, 1000);
+                    }, 2000);
                 } else {
-                    const errorResult = await response.json();
-                    throw new Error(errorResult.Message || 'Failed to update request');
+                    showMessage(result.message || 'Failed to forward request', 'error');
                 }
             } catch (error) {
                 showMessage('Error forwarding request: ' + error.message, 'error');
@@ -648,33 +687,51 @@
         }
 
         function cancelReview() {
+            if (!confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
+                return;
+            }
+            
+            resetChecklistForm();
+        }
+
+        function resetChecklistForm() {
             // Hide checklist panel
             document.getElementById('checklistPanel').style.display = 'none';
             
-            // Clear selection
-            document.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+            // Clear selected request
             selectedRequest = null;
+            const selectedRow = document.querySelector('tr.selected');
+            if (selectedRow) {
+                selectedRow.classList.remove('selected');
+            }
             
-            // Reset form
-            resetForm();
-        }
-
-        function resetForm() {
-            // Reset all checkboxes
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-            
-            // Reset text inputs (except readonly ones)
-            document.querySelectorAll('input[type="text"]:not([readonly]), input[type="tel"], input[type="email"], textarea').forEach(input => {
-                input.value = '';
+            // Reset all form fields
+            document.querySelectorAll('#checklistPanel input[type="text"]').forEach(input => {
+                if (input.id !== 'championName' && input.id !== 'verificationDate') {
+                    input.value = '';
+                }
             });
             
-            // Reset verification date to today
-            document.getElementById('verificationDate').value = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('#checklistPanel input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            document.getElementById('itChampionComments').value = '';
         }
 
-        function showMessage(text, type) {
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-IN');
+            } catch (error) {
+                return dateString;
+            }
+        }
+
+        function showMessage(message, type) {
             const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
+            messageDiv.textContent = message;
             messageDiv.className = `message ${type}`;
             messageDiv.style.display = 'block';
             
@@ -685,9 +742,14 @@
         }
 
         function logout() {
-            sessionStorage.removeItem('userInfo');
-            window.location.href = 'index.html';
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            }
         }
+
+        // Auto-refresh requests every 30 seconds
+        setInterval(loadRequests, 30000);
     </script>
 </body>
 </html>
