@@ -112,7 +112,7 @@
 <body>
   <div class="login-container">
     <div class="logo">
-      <h1>ECNET</h1>
+      <h1>INTERNET</h1>
       <p>Electronics Corporation of India Limited</p>
     </div>
 
@@ -179,37 +179,57 @@
           })
         });
 
-        const data = await response.json();
+        // Check if response is ok first
+        if (!response.ok) {
+          throw new Error('Invalid credentials or server error');
+        }
 
-        if (response.ok) {
-          // Check if the selected role matches the user's role
-          if (data.Role !== role) {
-            throw new Error('Selected role does not match your account role');
-          }
+        // Get response text first
+        const responseText = await response.text();
+        
+        // Check if response is empty or not JSON
+        if (!responseText || responseText.trim() === '') {
+          throw new Error('Invalid credentials');
+        }
 
-          // Store user info
-          sessionStorage.setItem('userInfo', JSON.stringify({
-            username: data.Username,
-            role: data.Role,
-            userId: data.UserId
-          }));
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (jsonError) {
+          // If JSON parsing fails, it's likely an error response
+          throw new Error('Invalid credentials');
+        }
 
-          // Redirect based on role
-          switch (data.Role) {
-            case 'NormalUser':
-              window.location.href = 'normalUser.html';
-              break;
-            case 'ITChampion':
-              window.location.href = 'it-champion.html';
-              break;
-            case 'HOD':
-              window.location.href = 'hod.html';
-              break;
-            default:
-              throw new Error('Unknown role');
-          }
-        } else {
-          throw new Error(data.Message || 'Login failed');
+        // Check if login was successful
+        if (data.success === false || data.error) {
+          throw new Error(data.message || data.error || 'Invalid credentials');
+        }
+
+        // Check if the selected role matches the user's role
+        if (data.Role !== role) {
+          throw new Error('Selected role does not match your account role');
+        }
+
+        // Store user info
+        sessionStorage.setItem('userInfo', JSON.stringify({
+          username: data.Username,
+          role: data.Role,
+          userId: data.UserId
+        }));
+
+        // Redirect based on role
+        switch (data.Role) {
+          case 'NormalUser':
+            window.location.href = 'normalUser.html';
+            break;
+          case 'ITChampion':
+            window.location.href = 'it-champion.html';
+            break;
+          case 'HOD':
+            window.location.href = 'hod.html';
+            break;
+          default:
+            throw new Error('Unknown role');
         }
       } catch (error) {
         errorDiv.textContent = error.message;
