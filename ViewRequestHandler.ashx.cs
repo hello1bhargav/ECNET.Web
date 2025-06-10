@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Data;
@@ -22,15 +22,14 @@ namespace ECNET.Web
             {
                 try
                 {
-                    // Get query parameters for filtering
-                    string roleFilter = context.Request.QueryString["role"]; // "hod", "it-champion", "admin"
-                    string statusFilter = context.Request.QueryString["status"]; // "Pending", "Approved", "Rejected"
+                    // Get filter parameters from query string
+                    string roleFilter = context.Request.QueryString["role"];
+                    string statusFilter = context.Request.QueryString["status"];
                     string applicantNameFilter = context.Request.QueryString["applicant"];
                     string departmentFilter = context.Request.QueryString["department"];
-                    string workflowStageFilter = context.Request.QueryString["stage"]; // "Submitted", "HOD Review", "IT Champion Review", "Completed"
-                    string requestIdFilter = context.Request.QueryString["id"]; // For viewing specific request
+                    string workflowStageFilter = context.Request.QueryString["workflowStage"];
 
-                    // Pagination parameters
+                    // Get pagination parameters
                     int page = 1;
                     int pageSize = 50;
 
@@ -40,81 +39,66 @@ namespace ECNET.Web
                     if (!string.IsNullOrEmpty(context.Request.QueryString["pageSize"]))
                         int.TryParse(context.Request.QueryString["pageSize"], out pageSize);
 
+                    // Build query with filters
                     string query = "SELECT * FROM Requests WHERE 1=1";
                     List<OdbcParameter> parameters = new List<OdbcParameter>();
 
                     // Apply role-based filtering
                     if (!string.IsNullOrEmpty(roleFilter))
                     {
-                        switch (roleFilter.ToLower())
+                        if (roleFilter.ToLower() == "hod")
                         {
-                            case "hod":
-                                // HOD sees requests from their department that need approval
-                                // You might want to add department matching logic here
-                                query += " AND (WorkflowStage = 'Submitted' OR WorkflowStage = 'HOD Review' OR Status = 'Pending')";
-                                break;
-
-                            case "it-champion":
-                                // IT Champion sees requests assigned to them or ready for IT review
-                                query += " AND (WorkflowStage = 'IT Champion Review' OR WorkflowStage = 'Completed')";
-                                break;
-
-                            case "admin":
-                                // Admin sees all requests - no additional filter needed
-                                break;
+                            // HOD should only see requests that reached the HOD stage
+                            query += " AND WorkflowStage = ?";
+                            parameters.Add(new OdbcParameter("stage", "HOD Review"));
+                        }
+                        else if (roleFilter.ToLower() == "it" || roleFilter.ToLower() == "it-champion")
+                        {
+                            // IT Champion sees only requests that are assigned to them
+                            query += " AND WorkflowStage = ?";
+                            parameters.Add(new OdbcParameter("stage", "IT Champion Review"));
                         }
                     }
 
-                    // Apply status filter
+
+                    // Apply other filters
                     if (!string.IsNullOrEmpty(statusFilter))
                     {
                         query += " AND Status = ?";
-                        parameters.Add(new OdbcParameter("statusFilter", statusFilter));
+                        parameters.Add(new OdbcParameter("status", statusFilter));
                     }
 
-                    // Apply applicant name filter
                     if (!string.IsNullOrEmpty(applicantNameFilter))
                     {
                         query += " AND ApplicantName LIKE ?";
-                        parameters.Add(new OdbcParameter("applicantNameFilter", "%" + applicantNameFilter + "%"));
+                        parameters.Add(new OdbcParameter("applicant", "%" + applicantNameFilter + "%"));
                     }
 
-                    // Apply department filter
                     if (!string.IsNullOrEmpty(departmentFilter))
                     {
                         query += " AND Department = ?";
-                        parameters.Add(new OdbcParameter("departmentFilter", departmentFilter));
+                        parameters.Add(new OdbcParameter("department", departmentFilter));
                     }
 
-                    // Apply workflow stage filter
                     if (!string.IsNullOrEmpty(workflowStageFilter))
                     {
                         query += " AND WorkflowStage = ?";
-                        parameters.Add(new OdbcParameter("workflowStageFilter", workflowStageFilter));
+                        parameters.Add(new OdbcParameter("workflowStage", workflowStageFilter));
                     }
 
-                    // Apply specific request ID filter
-                    if (!string.IsNullOrEmpty(requestIdFilter))
-                    {
-                        query += " AND Id = ?";
-                        parameters.Add(new OdbcParameter("requestIdFilter", requestIdFilter));
-                    }
-
-                    // Add ordering and pagination
+                    // Add ordering
                     query += " ORDER BY RequestDate DESC";
 
-                    // Add pagination (adjust syntax based on your database)
-                    int offset = (page - 1) * pageSize;
-                    query += " LIMIT " + offset.ToString() + ", " + pageSize.ToString();
-
+                    // Execute query
                     DataTable dt = DbHelper.ExecuteQuery(query, parameters.ToArray());
 
-                    List<Request> requests = new List<Request>();
+                    List<ViewRequestModel> requests = new List<ViewRequestModel>();
                     foreach (DataRow row in dt.Rows)
                     {
-                        requests.Add(new Request
+                        requests.Add(new ViewRequestModel
                         {
                             Id = Convert.ToInt32(row["Id"]),
+                            RequestID = Convert.ToInt32(row["Id"]), // Add this for JavaScript compatibility
                             ApplicantName = row["ApplicantName"].ToString(),
                             Department = row["Department"].ToString(),
                             Designation = row["Designation"].ToString(),
@@ -157,7 +141,8 @@ namespace ECNET.Web
                 catch (Exception ex)
                 {
                     context.Response.StatusCode = 500;
-                    responseJson = jsSerializer.Serialize(new { 
+                    responseJson = jsSerializer.Serialize(new
+                    {
                         Message = "Server error: " + ex.Message,
                         StackTrace = ex.StackTrace // Remove in production
                     });
@@ -165,7 +150,6 @@ namespace ECNET.Web
             }
             else if (context.Request.HttpMethod == "POST")
             {
-                // Handle request updates (HOD comments, status changes, etc.)
                 try
                 {
                     string requestBody = "";
@@ -192,19 +176,25 @@ namespace ECNET.Web
                         return;
                     }
 
-                    // Extract data with proper null checks
                     int requestId = 0;
                     string action = null;
                     string hodComments = "";
 
+                    // Handle both Id and requestId for compatibility
                     if (updateData.ContainsKey("Id"))
                         int.TryParse(updateData["Id"].ToString(), out requestId);
+                    else if (updateData.ContainsKey("requestId"))
+                        int.TryParse(updateData["requestId"].ToString(), out requestId);
 
                     if (updateData.ContainsKey("Action"))
-                        action = updateData["Action"]?.ToString();
+                        action = updateData["Action"] != null ? updateData["Action"].ToString() : null;
+                    else if (updateData.ContainsKey("action"))
+                        action = updateData["action"] != null ? updateData["action"].ToString() : null;
 
                     if (updateData.ContainsKey("HodComments"))
-                        hodComments = updateData["HodComments"]?.ToString() ?? "";
+                        hodComments = updateData["HodComments"] != null ? updateData["HodComments"].ToString() : "";
+                    else
+                        hodComments = "";
 
                     if (requestId == 0)
                     {
@@ -244,9 +234,10 @@ namespace ECNET.Web
                             break;
 
                         case "it_complete":
+                        case "forward_to_hod":
                             updateQuery = "UPDATE Requests SET Status = ?, WorkflowStage = ?, ItChampionReviewDate = ? WHERE Id = ?";
-                            updateParameters.Add(new OdbcParameter("status", "Completed"));
-                            updateParameters.Add(new OdbcParameter("stage", "Completed"));
+                            updateParameters.Add(new OdbcParameter("status", "Pending HOD Review"));
+                            updateParameters.Add(new OdbcParameter("stage", "HOD Review"));
                             updateParameters.Add(new OdbcParameter("reviewDate", DateTime.Now));
                             updateParameters.Add(new OdbcParameter("id", requestId));
                             break;
@@ -258,12 +249,13 @@ namespace ECNET.Web
                             return;
                     }
 
-                    // Execute the update
                     int affectedRows = DbHelper.ExecuteNonQuery(updateQuery, updateParameters.ToArray());
-                    
+
                     if (affectedRows > 0)
                     {
-                        responseJson = jsSerializer.Serialize(new { 
+                        responseJson = jsSerializer.Serialize(new
+                        {
+                            success = true,
                             Message = "Request updated successfully.",
                             AffectedRows = affectedRows,
                             RequestId = requestId,
@@ -273,7 +265,9 @@ namespace ECNET.Web
                     }
                     else
                     {
-                        responseJson = jsSerializer.Serialize(new { 
+                        responseJson = jsSerializer.Serialize(new
+                        {
+                            success = false,
                             Message = "No rows were updated. Request ID may not exist or no changes were made.",
                             RequestId = requestId
                         });
@@ -283,7 +277,9 @@ namespace ECNET.Web
                 catch (Exception ex)
                 {
                     context.Response.StatusCode = 500;
-                    responseJson = jsSerializer.Serialize(new { 
+                    responseJson = jsSerializer.Serialize(new
+                    {
+                        success = false,
                         Message = "Server error: " + ex.Message,
                         StackTrace = ex.StackTrace // Remove in production
                     });
@@ -304,10 +300,10 @@ namespace ECNET.Web
         }
     }
 
-    // Request model class - make sure this matches your database structure
-    public class Request
+    public class ViewRequestModel
     {
         public int Id { get; set; }
+        public int RequestID { get; set; } // Add this for JavaScript compatibility
         public string ApplicantName { get; set; }
         public string Department { get; set; }
         public string Designation { get; set; }

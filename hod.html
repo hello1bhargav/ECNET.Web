@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOD ECNET Requests</title>
+    <title>HOD INTERNET Requests</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -292,7 +292,7 @@
 <body>
     <div class="header">
         <div>
-            <h1>ECNET Request Management</h1>
+            <h1>INTERNET Request Management</h1>
             <div class="user-info">
                 <strong>Logged in as:</strong> <span id="currentUser"></span> (HOD)
             </div>
@@ -323,6 +323,7 @@
 
     <div class="filter-section">
         <div class="filter-controls">
+        <div class="filter-controls">
             <label>
                 Department:
                 <select id="deptFilter">
@@ -334,8 +335,9 @@
                 <select id="statusFilter">
                     <option value="">All Status</option>
                     <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Declined">Declined</option>
+                    <option value="HOD Approved">HOD Approved</option>
+                    <option value="HOD Rejected">HOD Rejected</option>
+                    <option value="Completed">Completed</option>
                 </select>
             </label>
             <label>
@@ -431,7 +433,7 @@
                     <span class="detail-value" id="detail-reviewDate"></span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Checklist Status:</span>
+                    <span class="detail-label">Workflow Stage:</span>
                     <span class="detail-value" id="detail-checklistStatus"></span>
                 </div>
             </div>
@@ -453,7 +455,7 @@
     </div>
 
     <script>
-        const API_BASE = ''; // Corrected: Set to empty string for direct ASHX calls
+        const API_BASE = '';
         let currentRequests = [];
         let selectedRequest = null;
 
@@ -482,29 +484,41 @@
                 document.getElementById('detailsPanel').style.display = 'none';
                 showError(''); // Clear any previous error messages
 
-                // Fetch call should go to ViewRequestsHandler.ashx
-                const response = await fetch(`ViewRequestsHandler.ashx`);
+                // Fetch call should go to ViewRequestHandler.ashx with role filter
+                const response = await fetch(`ViewRequestHandler.ashx?role=hod`);
+                
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.Message || 'Failed to fetch requests');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
-                currentRequests = await response.json();
+                const responseData = await response.json();
+
+                // Check if response has the expected structure
+                if (responseData.Requests && Array.isArray(responseData.Requests)) {
+                    currentRequests = responseData.Requests;
+                } else if (Array.isArray(responseData)) {
+                    // Fallback: if response is directly an array
+                    currentRequests = responseData;
+                } else {
+                    throw new Error('Invalid response format: Expected array of requests');
+                }
+
                 displayRequests(currentRequests);
                 updateStats(currentRequests);
-                populateDepartmentFilter(currentRequests); // Populate after initial load
+                populateDepartmentFilter(currentRequests);
 
                 document.getElementById('loadingMessage').style.display = 'none';
                 document.getElementById('requestsTable').style.display = 'table';
             } catch (error) {
                 showError('Error loading requests: ' + error.message);
                 document.getElementById('loadingMessage').style.display = 'none';
+                console.error('Load requests error:', error);
             }
         }
 
         function displayRequests(requests) {
             const tbody = document.getElementById('requestsTableBody');
-            tbody.innerHTML = ''; // Clear existing rows
+            tbody.innerHTML = '';
 
             if (requests.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No requests found.</td></tr>';
@@ -518,7 +532,7 @@
                     <td>${request.ApplicantName || 'N/A'}</td>
                     <td>${request.Department || 'N/A'}</td>
                     <td>${new Date(request.RequestDate).toLocaleDateString()}</td>
-                    <td><span class="status-badge status-${request.Status.toLowerCase()}">${request.Status}</span></td>
+                    <td><span class="status-badge status-${request.Status.toLowerCase().replace(/\s+/g, '-')}">${request.Status}</span></td>
                     <td>${request.ItChampionName || 'Not Assigned'}</td>
                 `;
 
@@ -554,7 +568,7 @@
             document.getElementById('detail-champion').textContent = request.ItChampionName || 'Not Assigned';
             document.getElementById('detail-reviewDate').textContent = request.ItChampionReviewDate ?
                 new Date(request.ItChampionReviewDate).toLocaleDateString() : 'Pending';
-            document.getElementById('detail-checklistStatus').textContent = request.WorkflowStage || 'N/A'; // WorkflowStage is used for Checklist Status
+            document.getElementById('detail-checklistStatus').textContent = request.WorkflowStage || 'N/A';
 
             document.getElementById('hodComments').value = request.HodComments || '';
 
@@ -562,12 +576,12 @@
             const approveBtn = document.getElementById('approveBtn');
             const declineBtn = document.getElementById('declineBtn');
 
-            if (request.Status !== 'Pending') { // If status is not Pending, disable buttons
+            if (request.Status !== 'Pending' && !request.Status.includes('Submitted') && !request.Status.includes('HOD Review')) {
                 approveBtn.disabled = true;
                 declineBtn.disabled = true;
-                approveBtn.textContent = request.Status === 'Approved' ? 'Already Approved' : 'Request Processed';
-                declineBtn.textContent = request.Status === 'Declined' ? 'Already Declined' : 'Request Processed';
-            } else { // If status is Pending, enable buttons
+                approveBtn.textContent = request.Status.includes('Approved') ? 'Already Approved' : 'Request Processed';
+                declineBtn.textContent = request.Status.includes('Rejected') ? 'Already Rejected' : 'Request Processed';
+            } else {
                 approveBtn.disabled = false;
                 declineBtn.disabled = false;
                 approveBtn.textContent = 'Approve Request';
@@ -577,9 +591,9 @@
 
         function updateStats(requests) {
             const total = requests.length;
-            const pending = requests.filter(r => r.Status === 'Pending').length;
-            const approved = requests.filter(r => r.Status === 'Approved').length;
-            const declined = requests.filter(r => r.Status === 'Declined').length;
+            const pending = requests.filter(r => r.Status === 'Pending' || r.WorkflowStage === 'Submitted' || r.WorkflowStage === 'HOD Review').length;
+            const approved = requests.filter(r => r.Status.includes('Approved')).length;
+            const declined = requests.filter(r => r.Status.includes('Rejected')).length;
 
             document.getElementById('totalRequests').textContent = total;
             document.getElementById('pendingRequests').textContent = pending;
@@ -589,8 +603,8 @@
 
         function populateDepartmentFilter(requests) {
             const deptFilter = document.getElementById('deptFilter');
-            const departments = [...new Set(requests.map(r => r.Department).filter(Boolean))]; // Get unique non-null departments
-            deptFilter.innerHTML = '<option value="">All Departments</option>'; // Reset dropdown
+            const departments = [...new Set(requests.map(r => r.Department).filter(Boolean))];
+            deptFilter.innerHTML = '<option value="">All Departments</option>';
 
             departments.sort().forEach(dept => {
                 const option = document.createElement('option');
@@ -609,21 +623,18 @@
             const filteredRequests = currentRequests.filter(request => {
                 let matches = true;
 
-                // Department filter
                 if (deptFilter && request.Department !== deptFilter) {
                     matches = false;
                 }
 
-                // Status filter
                 if (statusFilter && request.Status !== statusFilter) {
                     matches = false;
                 }
 
-                // Date range filter
                 if (fromDateStr) {
                     const requestDate = new Date(request.RequestDate);
                     const fromDate = new Date(fromDateStr);
-                    fromDate.setHours(0, 0, 0, 0); // Start of the day
+                    fromDate.setHours(0, 0, 0, 0);
                     if (requestDate < fromDate) {
                         matches = false;
                     }
@@ -631,7 +642,7 @@
                 if (toDateStr) {
                     const requestDate = new Date(request.RequestDate);
                     const toDate = new Date(toDateStr);
-                    toDate.setHours(23, 59, 59, 999); // End of the day
+                    toDate.setHours(23, 59, 59, 999);
                     if (requestDate > toDate) {
                         matches = false;
                     }
@@ -640,7 +651,6 @@
             });
 
             displayRequests(filteredRequests);
-            // Stats are for all fetched requests, not just filtered ones, so no need to update stats here.
         }
 
         async function updateRequestStatus(newStatus) {
@@ -660,28 +670,26 @@
             showError(''); // Clear previous errors
 
             try {
-                // Determine workflow stage based on newStatus
-                let workflowStage;
+                // Determine action based on newStatus
+                let action;
                 if (newStatus === 'Approved') {
-                    workflowStage = 'HOD Approved';
+                    action = 'hod_approve';
                 } else if (newStatus === 'Declined') {
-                    workflowStage = 'HOD Declined';
+                    action = 'hod_reject';
                 } else {
-                    workflowStage = selectedRequest.WorkflowStage; // Keep current if not Approved/Declined
+                    throw new Error('Invalid status: ' + newStatus);
                 }
-
 
                 // Data to send to the server
                 const updateData = {
                     Id: selectedRequest.Id,
-                    Status: newStatus,
-                    HodComments: hodComments,
-                    WorkflowStage: workflowStage // Update workflow stage
+                    Action: action,
+                    HodComments: hodComments
                 };
 
-                // Fetch call should go to UpdateRequestHandler.ashx
-                const response = await fetch(`UpdateRequestHandler.ashx`, {
-                    method: 'POST', // Using POST for updates, as ASHX PUT can be tricky
+                // Fetch call should go to ViewRequestHandler.ashx (it handles both GET and POST)
+                const response = await fetch(`ViewRequestHandler.ashx`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -691,7 +699,7 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert(result.Message); // Or use a more styled message
+                    alert(result.Message || 'Request updated successfully');
                     // Reload requests to reflect changes
                     loadRequests();
                     // Hide details panel after successful update
@@ -701,15 +709,15 @@
                 }
             } catch (error) {
                 showError('Error updating status: ' + error.message);
+                console.error('Update request error:', error);
             } finally {
-                // Re-enable buttons and restore text after operation (or after reloadRequests)
-                if (selectedRequest && selectedRequest.Status === 'Pending') { // Re-enable only if still pending after operation
+                // Re-enable buttons and restore text after operation
+                if (selectedRequest && selectedRequest.Status === 'Pending') {
                     approveBtn.disabled = false;
                     declineBtn.disabled = false;
                     approveBtn.textContent = 'Approve Request';
-                    declineBtn.textContent = 'Declined Request'; // Corrected text
+                    declineBtn.textContent = 'Decline Request';
                 }
-                // If the request is no longer pending, the populateDetails will handle disabling them.
             }
         }
 
